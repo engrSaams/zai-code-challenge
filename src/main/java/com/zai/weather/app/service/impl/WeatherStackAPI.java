@@ -3,21 +3,23 @@ package com.zai.weather.app.service.impl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.CachePut;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.zai.weather.app.model.WeatherReport;
-import com.zai.weather.app.service.WeatherSource;
+import com.zai.weather.app.service.WeatherReportSource;
+import com.zai.weather.app.util.JsonUtil;
 
 import lombok.extern.slf4j.Slf4j;
 
 @Service
 @Slf4j
-public class WeatherStackAPI implements WeatherSource {
+public class WeatherStackAPI implements WeatherReportSource {
 
 	@Value("${weather.stack.url}")
 	private String weatherStackUrl;
@@ -26,39 +28,45 @@ public class WeatherStackAPI implements WeatherSource {
 	private String weatherStackApiKey;
 
 	private RestTemplate restTemplate;
+	private JsonUtil jsonUtil;
 
 	@Autowired
-	public WeatherStackAPI(RestTemplate restTemplate) {
+	public WeatherStackAPI(RestTemplate restTemplate, JsonUtil jsonUtil) {
 		this.restTemplate = restTemplate;
+		this.jsonUtil = jsonUtil;
 	}
-
+	
 	@Override
 	@CachePut(value = "weatherCache", unless = "#result == null || #result.windSpeed == null || #result.temperatureDegrees == null")
-	public WeatherReport perform() {
-
+	public WeatherReport getWeatherReport() {
+		
 		WeatherReport weatherReport = new WeatherReport();
 		
-		UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(weatherStackUrl)
-				.queryParam("access_key", weatherStackApiKey)
-				.queryParam("query", "Melbourne");
-		String url = builder.toUriString();
-
-		ObjectMapper objectMapper = new ObjectMapper();
+		ResponseEntity<String> response = new ResponseEntity<>(HttpStatus.NO_CONTENT);
+		
 		try {
-
-			ResponseEntity<String> response = restTemplate.getForEntity(url, String.class);
-			JsonNode jsonNode = objectMapper.readTree(response.getBody());
-			weatherReport.setWindSpeed(jsonNode.get("current").get("wind_speed").toPrettyString());
-			weatherReport.setTemperatureDegrees(jsonNode.get("current").get("temperature").toPrettyString());
-			log.info("Successfully called WeatherStack API: " + new ObjectMapper().writeValueAsString(weatherReport));
-
-		} catch (Exception e) {
-
-			log.error("Error in calling Weather Stack API: " + e.getLocalizedMessage());
-
+			response = restTemplate.getForEntity(buildUrl(), String.class);
+		} catch (RestClientException e) {
+			log.error("Error in connecting to WeatherStackAPI: " + e.getMessage());
+			return weatherReport;
 		}
 
+		
+		JsonNode responseJson = jsonUtil.convertToJsonNode(response.getBody());
+		
+		weatherReport.setWindSpeed(responseJson.get("current").get("wind_speed").toPrettyString());
+		weatherReport.setTemperatureDegrees(responseJson.get("current").get("temperature").toPrettyString());
+		
+		log.info("Successfully called WeatherStack API: " + weatherReport.toString());
 		return weatherReport;
 	}
 
+	@Override
+	public String buildUrl() {
+		UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(weatherStackUrl)
+				.queryParam("access_key", weatherStackApiKey)
+				.queryParam("query", "Melbourne");
+		return builder.toUriString();
+	}
+	
 }

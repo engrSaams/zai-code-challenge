@@ -9,22 +9,22 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.zai.weather.app.model.WeatherReport;
-import com.zai.weather.app.service.WeatherService;
+import com.zai.weather.app.service.WeatherReportSourceManager;
 
 @RestController
 @RequestMapping("${endpoint.url}")
-public class WeatherController {
+public class WeatherReportController {
 	
-	private WeatherService weatherService;
+	private WeatherReportSourceManager weatherReportSourceManager;
 	
     @Autowired
-    public WeatherController(WeatherService weatherService) {
-        this.weatherService = weatherService;
+    public WeatherReportController(WeatherReportSourceManager weatherReportSourceManager) {
+        this.weatherReportSourceManager = weatherReportSourceManager;
     }
 	
 	@GetMapping(value = "/weather")
 	public ResponseEntity<WeatherReport> weatherReport(@RequestParam String city) {
-		return new ResponseEntity<WeatherReport>(weatherService.getWeatherReport(), HttpStatus.OK);
+		return new ResponseEntity<WeatherReport>(weatherReportSourceManager.getWeatherReport(), HttpStatus.OK);
 	}
 	
 }

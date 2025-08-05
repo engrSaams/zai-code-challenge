@@ -9,35 +9,33 @@ import com.zai.weather.app.service.impl.OpenWeatherMapAPI;
 import com.zai.weather.app.service.impl.WeatherStackAPI;
 
 @Service
-public class WeatherService {
+public class WeatherReportSourceManager {
 
 	private WeatherStackAPI weatherStackAPI;
 	private OpenWeatherMapAPI openWeatherMapAPI;
 	
     @Autowired
-    public WeatherService(WeatherStackAPI weatherStackAPI, OpenWeatherMapAPI openWeatherMapAPI) {
+    public WeatherReportSourceManager(WeatherStackAPI weatherStackAPI, OpenWeatherMapAPI openWeatherMapAPI) {
         this.weatherStackAPI = weatherStackAPI;
         this.openWeatherMapAPI = openWeatherMapAPI;
     }
     
     @Cacheable(value = "weatherCache", unless = "#result == null || #result.windSpeed == null || #result.temperatureDegrees == null")
     public WeatherReport getWeatherReport() {
-    	WeatherReport weatherReport = weatherStackAPI.perform();
-    	//Failover
-    	if(hasNull(weatherReport)) {
-    		weatherReport = openWeatherMapAPI.perform();
-    	}
+    	
+    	WeatherReport weatherReport = new WeatherReport();
+    	
+    	//Weather Stack API
+    	weatherReport = weatherStackAPI.getWeatherReport();
+    	if (weatherReport.hasValidData()) return weatherReport; 
+    	
+    	//Open Weather API
+    	weatherReport = openWeatherMapAPI.getWeatherReport();
+    	if(weatherReport.hasValidData()) return weatherReport;
+
+    	//Can add other APIs here if needed...
     	return weatherReport;
-    }
-    
-    private boolean hasNull(WeatherReport weatherReport) {	
-    	if (weatherReport.getWindSpeed() == null ) {
-    		return true;
-    	}
-    	if (weatherReport.getTemperatureDegrees() == null) {
-    		return true;
-    	}
-    	return false;
+    	
     }
 	
 }
