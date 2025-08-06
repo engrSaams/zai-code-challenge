@@ -19,7 +19,7 @@ import lombok.extern.slf4j.Slf4j;
 @Service
 @Slf4j
 public class WeatherStackAPI implements WeatherReportSource {
-
+	
 	@Value("${weather.stack.url}")
 	private String weatherStackUrl;
 
