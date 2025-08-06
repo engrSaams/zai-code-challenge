@@ -2,7 +2,6 @@ package com.zai.weather.app.service.impl;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.cache.annotation.CachePut;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -37,15 +36,13 @@ public class OpenWeatherMapAPI implements WeatherReportSource {
 	}
 	
 	@Override
-	@CachePut(value = "weatherCache", unless = "#result == null || #result.windSpeed == null || #result.temperatureDegrees == null")
-	public WeatherReport getWeatherReport() {
+	public WeatherReport getWeatherReport(String city) {
 		
 		WeatherReport weatherReport = new WeatherReport();
-		
 		ResponseEntity<String> response = new ResponseEntity<>(HttpStatus.NO_CONTENT);
 		
 		try {
-			response = restTemplate.getForEntity(buildUrl(), String.class);
+			response = restTemplate.getForEntity(buildUrl(city), String.class);
 		} catch (RestClientException e) {
 			log.error("Error in connecting to OpenWeatherMapAPI: " + response.getStatusCode());
 			return weatherReport;
@@ -62,9 +59,9 @@ public class OpenWeatherMapAPI implements WeatherReportSource {
 	}
 	
 	@Override
-	public String buildUrl() {
+	public String buildUrl(String city) {
 		UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(openWeatherUrl)
-				.queryParam("q", "melbourne,AU")
+				.queryParam("q", city + ",AU")
 				.queryParam("appid", openWeatherApiKey);
 		return builder.toUriString();
 	}

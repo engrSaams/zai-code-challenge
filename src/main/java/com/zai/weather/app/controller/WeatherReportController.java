@@ -24,7 +24,7 @@ public class WeatherReportController {
 	
 	@GetMapping(value = "/weather")
 	public ResponseEntity<WeatherReport> weatherReport(@RequestParam String city) {
-		return new ResponseEntity<WeatherReport>(weatherReportSourceManager.getWeatherReport(), HttpStatus.OK);
+		return new ResponseEntity<WeatherReport>(weatherReportSourceManager.getWeatherReport(city), HttpStatus.OK);
 	}
 	
 }

@@ -9,6 +9,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import com.github.benmanes.caffeine.cache.Caffeine;
+import com.zai.weather.app.service.CacheService;
 
 @Configuration
 @EnableCaching
@@ -19,7 +20,7 @@ public class CacheConfig {
         CaffeineCacheManager cacheManager = new CaffeineCacheManager();
         cacheManager.setCaffeine(Caffeine.newBuilder()
                 .expireAfterWrite(3, TimeUnit.SECONDS)
-                .maximumSize(100));
+                .removalListener(new CacheService()));
         return cacheManager;
     }
 	
