@@ -40,10 +40,11 @@ public class WeatherStackAPI implements WeatherReportSource {
 		
 		WeatherReport weatherReport = new WeatherReport();
 		ResponseEntity<String> response = new ResponseEntity<>(HttpStatus.NO_CONTENT);
-		
+
 		try {
 			response = restTemplate.getForEntity(buildUrl(city), String.class);
-		} catch (RestClientException e) {
+		} 
+		catch (RestClientException e) {
 			log.error("Error in connecting to WeatherStackAPI: " + e.getMessage());
 			return weatherReport;
 		}

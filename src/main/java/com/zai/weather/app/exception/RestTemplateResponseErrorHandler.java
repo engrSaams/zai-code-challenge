@@ -24,20 +24,20 @@ public class RestTemplateResponseErrorHandler implements ResponseErrorHandler {
 	
 	@Override
 	public void handleError(ClientHttpResponse response) throws IOException {
-		
 		if (response.getStatusCode().is5xxServerError()) {
 			
 			throw new HttpServerErrorException(response.getStatusCode());
 			
 		} else if (response.getStatusCode().is4xxClientError()) {
-			
+
 			throw new HttpClientErrorException(response.getStatusCode());
 			
 		} else {
-			
+
             throw new RestClientException("Unknown error occurred with status code: " + response.getStatusCode() + ", Response: " + response.getBody());
 			
 		}
+		
 		
 	}
 

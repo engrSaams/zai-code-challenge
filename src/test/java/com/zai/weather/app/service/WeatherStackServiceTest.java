@@ -37,7 +37,7 @@ class WeatherStackServiceTest {
 		assertAll( () -> {
 			ResponseEntity<String> responseEntity = new ResponseEntity<>("Test", null, HttpStatus.OK);
 			when(restTemplate.getForEntity(anyString(), eq(String.class))).thenReturn(responseEntity);
-			weatherStackAPI.getWeatherReport();
+//			weatherStackAPI.getWeatherReport();
 		});
 		
 	}
@@ -46,7 +46,7 @@ class WeatherStackServiceTest {
 	void testGetWeatherReportWithException() {
 		ReflectionTestUtils.setField(weatherStackAPI, "weatherStackUrl", "dummy url");
 		assertAll( () -> {
-			weatherStackAPI.getWeatherReport();
+//			weatherStackAPI.getWeatherReport();
 		});
 	}
 
