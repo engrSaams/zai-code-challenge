@@ -23,7 +23,7 @@ public class OpenWeatherMapAPI implements WeatherReportSource {
 	@Value("${open.weather.url}")
 	private String openWeatherUrl;
 
-	@Value("${open.weather.api.key}")
+	@Value("${open.weather.api.key:default_value}")
 	private String openWeatherApiKey;
 
 	private RestTemplate restTemplate;

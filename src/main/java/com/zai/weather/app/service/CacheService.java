@@ -13,7 +13,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class CacheService implements RemovalListener<Object, Object> {
 
-	private static WeatherReport weatherReport = new WeatherReport();
+	public static WeatherReport weatherReport = new WeatherReport();
 	
 	@Override
 	public void onRemoval(@Nullable Object key, @Nullable Object value, RemovalCause cause) {

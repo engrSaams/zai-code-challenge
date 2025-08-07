@@ -3,6 +3,7 @@ package com.zai.weather.app.model;
 import lombok.Getter;
 import lombok.Setter;
 
+@lombok.Generated
 @Getter
 @Setter
 public class ErrorResponse {

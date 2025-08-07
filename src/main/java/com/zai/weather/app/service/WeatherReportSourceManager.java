@@ -13,17 +13,15 @@ public class WeatherReportSourceManager {
 
 	private WeatherStackAPI weatherStackAPI;
 	private OpenWeatherMapAPI openWeatherMapAPI;
-	
-	@Autowired
 	private CacheService cacheService;
 	
     @Autowired
-    public WeatherReportSourceManager(WeatherStackAPI weatherStackAPI, OpenWeatherMapAPI openWeatherMapAPI) {
+    public WeatherReportSourceManager(WeatherStackAPI weatherStackAPI, OpenWeatherMapAPI openWeatherMapAPI, CacheService cacheService) {
         this.weatherStackAPI = weatherStackAPI;
         this.openWeatherMapAPI = openWeatherMapAPI;
+        this.cacheService = cacheService;
     }
     
-//    @Cacheable(value = "weatherCache", key = "#root.method.name", unless = "#WeatherReport?.windSpeed == null || #WeatherReport?.temperatureDegrees == null")
     @Cacheable(value = "weatherCache", key = "#root.method.name")
     public WeatherReport getWeatherReport(String city) {
     	WeatherReport weatherReport = new WeatherReport();
@@ -36,9 +34,9 @@ public class WeatherReportSourceManager {
     	weatherReport = openWeatherMapAPI.getWeatherReport(city);
     	if(weatherReport.hasValidData()) return weatherReport;
 
-    	//Add future APIs here...
+    	//Add future providers here...
     	
-    	//Return precious cache as stale response if all providers are down
+    	//Return previous cache as stale response if all providers are down
     	return cacheService.restoreCache();
     	
     }

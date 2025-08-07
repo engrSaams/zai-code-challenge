@@ -23,7 +23,7 @@ public class WeatherStackAPI implements WeatherReportSource {
 	@Value("${weather.stack.url}")
 	private String weatherStackUrl;
 
-	@Value("${weather.stack.api.key}")
+	@Value("${weather.stack.api.key:default_value}")
 	private String weatherStackApiKey;
 
 	private RestTemplate restTemplate;
@@ -45,7 +45,7 @@ public class WeatherStackAPI implements WeatherReportSource {
 			response = restTemplate.getForEntity(buildUrl(city), String.class);
 		} 
 		catch (RestClientException e) {
-			log.error("Error in connecting to WeatherStackAPI: " + e.getMessage());
+			log.error("Error in connecting to WeatherStackAPI: " + response.getStatusCode());
 			return weatherReport;
 		}
 		

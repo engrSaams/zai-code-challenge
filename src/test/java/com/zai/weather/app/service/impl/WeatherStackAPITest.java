@@ -1,4 +1,4 @@
-package com.zai.weather.app.service.impl.com.zai.weather.app.service.impl;
+package com.zai.weather.app.service.impl;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -10,24 +10,29 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.net.URL;
+import java.util.stream.Stream;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.util.ReflectionTestUtils;
+import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.zai.weather.app.model.WeatherReport;
-import com.zai.weather.app.service.impl.WeatherStackAPI;
 import com.zai.weather.app.util.JsonUtil;
 
 @ExtendWith(MockitoExtension.class)
@@ -50,17 +55,27 @@ class WeatherStackAPITest {
 		ReflectionTestUtils.setField(weatherStackAPI, "weatherStackUrl", testUrl);
 	}
 	
-	@Test
-	void WeatherStackAPI_getWeatherReport_ShouldReturnNullWeatherReport() {
-		when(restTemplate.getForEntity(anyString(), eq(String.class))).thenThrow(RestClientException.class);
+    private static Stream<Arguments> provideExceptionTestCases() {
+        return Stream.of(
+            Arguments.of(RestClientException.class),
+            Arguments.of(new HttpServerErrorException(HttpStatus.INTERNAL_SERVER_ERROR).getClass()),
+            Arguments.of(new HttpClientErrorException(HttpStatus.NOT_FOUND).getClass())
+        );
+    }
+	
+    @ParameterizedTest
+    @MethodSource("provideExceptionTestCases")
+	void getWeatherReport_exception_ShouldReturnNullWeatherReport(Class<? extends Throwable> expectedException) {
+		when(restTemplate.getForEntity(anyString(), eq(String.class))).thenThrow(expectedException);
 		WeatherReport weatherReport = weatherStackAPI.getWeatherReport("Test City");
+		verify(restTemplate).getForEntity(anyString(), eq(String.class));
 		
 		assertNull(weatherReport.getTemperatureDegrees());
 		assertNull(weatherReport.getWindSpeed());
 	}
 	
 	@Test
-	void WeatherStackAPI_getWeatherReport_ShouldReturnValidWeatherReport() {	
+	void getWeatherReport_HappyPath_ShouldReturnValidWeatherReport() {	
 		ResponseEntity<String> mockResponseEntity = new ResponseEntity<>("TestBody", HttpStatus.OK);
 		when(restTemplate.getForEntity(anyString(), eq(String.class))).thenReturn(mockResponseEntity);
 
@@ -87,7 +102,7 @@ class WeatherStackAPITest {
 	}
 	
 	@Test
-	void WeatherStackAPI_buildUrl_shouldReturnValidUrl() {
+	void buildUrl_shouldReturnValidUrl() {
 		String url = weatherStackAPI.buildUrl("Test City");
 		assertDoesNotThrow(() -> new URL(url));
 	}
